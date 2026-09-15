@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bolsas Delta — Examen Digital</title>
+<style>
+  :root{
+    --kraft:#e7dcc4;
+    --kraft-dark:#d8c9a6;
+    --ink:#1e2a24;
+    --panel:#fffaf0;
+    --safety:#e8600c;
+    --safety-dark:#c14e08;
+    --ok:#2f7a4f;
+    --bad:#b0392c;
+    --line:#c9b78f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:
+      repeating-linear-gradient(135deg, rgba(0,0,0,0.015) 0 2px, transparent 2px 8px),
+      var(--kraft);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:24px 14px;
+  }
+  .app{
+    width:100%;
+    max-width:640px;
+  }
+  .band{
+    background:var(--ink);
+    color:var(--kraft);
+    padding:14px 20px;
+    border-radius:10px 10px 0 0;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .band h1{
+    font-size:1.05rem;
+    margin:0;
+    letter-spacing:0.02em;
+    font-weight:700;
+  }
+  .band span{
+    font-size:0.72rem;
+    opacity:0.75;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-top:none;
+    border-radius:0 0 10px 10px;
+    padding:26px 22px 22px;
+    box-shadow:0 2px 0 var(--line), 0 10px 24px rgba(30,42,36,0.08);
+  }
+  h2.title{
+    font-size:1.35rem;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+  p.sub{
+    margin:0 0 22px;
+    color:#4b5a52;
+    font-size:0.92rem;
+    line-height:1.5;
+  }
+  label{
+    display:block;
+    font-size:0.78rem;
+    font-weight:600;
+    color:#4b5a52;
+    margin:14px 0 5px;
+  }
+  input[type=text], select{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--line);
+    border-radius:7px;
+    font-size:0.95rem;
+    background:#fff;
+    color:var(--ink);
+  }
+  input[type=text]:focus, select:focus{
+    outline:none;
+    border-color:var(--safety);
+  }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border:none;
+  }
+  .btn-primary{
+    margin-top:22px;
+    width:100%;
+    background:var(--safety);
+    color:#fff;
+    font-weight:700;
+    font-size:1rem;
+    padding:13px;
+    border-radius:8px;
+    transition:background 0.15s;
+  }
+  .btn-primary:hover{ background:var(--safety-dark); }
+  .btn-primary:disabled{ background:#c9b78f; cursor:not-allowed; }
+  .progress-wrap{
+    height:6px;
+    background:var(--kraft-dark);
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:18px;
+  }
+  .progress-bar{
+    height:100%;
+    background:var(--safety);
+    transition:width 0.25s ease;
+  }
+  .qmeta{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--safety-dark);
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .qtext{
+    font-size:1.12rem;
+    line-height:1.45;
+    margin:0 0 18px;
+    color:var(--ink);
+  }
+  .opcion{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:13px 14px;
+    margin-bottom:10px;
+    font-size:0.95rem;
+    color:var(--ink);
+    line-height:1.4;
+    transition:border-color 0.12s, background 0.12s;
+  }
+  .opcion:hover{ border-color:var(--safety); }
+  .opcion.selected{
+    border-color:var(--safety);
+    background:#fff2e8;
+    font-weight:600;
+  }
+  .foot-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:18px;
+  }
+  .foot-row span{
+    font-size:0.78rem;
+    color:#7a8a80;
+  }
+  .btn-next{
+    background:var(--ink);
+    color:var(--kraft);
+    padding:11px 22px;
+    border-radius:7px;
+    font-weight:700;
+    font-size:0.92rem;
+  }
+  .btn-next:disabled{ background:#b9c2bc; cursor:not-allowed; }
+  .score-hero{
+    text-align:center;
+    padding:10px 0 6px;
+  }
+  .score-num{
+    font-size:3.2rem;
+    font-weight:800;
+    color:var(--ink);
+    line-height:1;
+  }
+  .score-den{
+    font-size:1.1rem;
+    color:#7a8a80;
+  }
+  .badge{
+    display:inline-block;
+    margin-top:10px;
+    padding:5px 14px;
+    border-radius:20px;
+    font-size:0.8rem;
+    font-weight:700;
+  }
+  .badge.pass{ background:#e2f2e6; color:var(--ok); }
+  .badge.fail{ background:#f6e3e0; color:var(--bad); }
+  .review-item{
+    border-top:1px solid var(--line);
+    padding:12px 0;
+  }
+  .review-item .tema{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:#7a8a80;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .review-item .qt{ font-size:0.92rem; margin-bottom:6px; }
+  .review-item .ans{
+    font-size:0.85rem;
+    padding:6px 10px;
+    border-radius:6px;
+    margin-bottom:4px;
+  }
+  .ans.correcta{ background:#e2f2e6; color:var(--ok); }
+  .ans.incorrecta{ background:#f6e3e0; color:var(--bad); text-decoration:line-through; }
+  .ans.correcta-hint{ background:#e2f2e6; color:var(--ok); }
+  .hidden{ display:none; }
+  .admin-link{
+    text-align:center;
+    margin-top:14px;
+    font-size:0.75rem;
+    color:#9aa79f;
+  }
+  .admin-link a{ color:#9aa79f; text-decoration:underline; cursor:pointer; }
+  table.res{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.82rem;
+    margin-top:14px;
+  }
+  table.res th, table.res td{
+    border-bottom:1px solid var(--line);
+    padding:7px 6px;
+    text-align:left;
+  }
+  table.res th{ color:#4b5a52; font-size:0.72rem; text-transform:uppercase; }
+  .note{
+    background:#fff2e8;
+    border:1px solid #f0c9a8;
+    border-radius:8px;
+    padding:10px 12px;
+    font-size:0.8rem;
+    color:#7a4520;
+    margin-top:16px;
+    line-height:1.4;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="band">
+    <h1>BOLSAS DELTA</h1>
+    <span id="bandRight">Examen digital</span>
+  </div>
+  <div class="card" id="card"></div>
+  <div class="admin-link" id="adminLink"><a onclick="showAdmin()">Ver resultados (supervisor)</a></div>
+</div>
+
+<script>
+// ---------------- Banco de preguntas (auto-calificables) ----------------
+const BANCO = [
+  {tema:"Conocimiento de máquina", texto:"¿Cuál es la forma correcta de conocer la capacidad real de la máquina antes de operarla?", opciones:["Consultar la placa de datos técnicos y el manual de rangos de operación de la máquina","Guiarse por la velocidad que maneja el turno anterior, ya que suele ser la máxima permitida","Ajustar la máquina poco a poco hasta identificar en qué punto empieza a fallar"], correcta:0},
+  {tema:"Cambio de rollo", texto:"Durante un cambio de rollo, ¿cuál es el procedimiento correcto?", opciones:["Detener la máquina de forma segura, retirar el rollo vacío y colocar el nuevo verificando el sentido de desenrollado","Detener la máquina, retirar el rollo vacío e instalar el nuevo, ajustando la tensión al máximo para evitar arrugas","Reducir la velocidad al mínimo y cambiar el rollo sin detener la máquina para no perder tiempo de producción"], correcta:0},
+  {tema:"Cambio de formador", texto:"Al instalar un formador nuevo, además de que coincida con la medida de la bolsa, ¿qué otro punto es indispensable verificar?", opciones:["Que el centrado y la escuadra del formador queden correctamente alineados con el avance del papel","Que la medida coincida con la bolsa, revisando el ajuste de centrado hasta que ya esté corriendo la producción","Que quede alineado, dejando el ajuste fino de escuadra para cuando aparezcan defectos visibles"], correcta:0},
+  {tema:"Cambio completo autónomo", texto:"¿Qué distingue a un cambio completo autónomo de un cambio con apoyo de mantenimiento?", opciones:["El operador realiza y verifica por sí mismo todos los ajustes de formador, medidas, tiempos y adhesivo","El operador realiza todos los ajustes, pero deja la verificación final a criterio del siguiente turno","El operador prepara refacciones y ajustes, pero siempre solicita a mantenimiento que valide antes de arrancar"], correcta:0},
+  {tema:"Uso de herramientas", texto:"Si una herramienta disponible no es la especificada para un ajuste pero parece funcionar, lo correcto es:", opciones:["Buscar y usar la herramienta correcta para evitar dañar la pieza o la máquina","Usar una herramienta similar si el ajuste parece sencillo y no requiere precisión","Usarla y reportarlo después para que se consiga la herramienta correcta más adelante"], correcta:0},
+  {tema:"Identificación de refacciones", texto:"Dos refacciones parecen iguales a simple vista pero tienen diferente código. ¿Qué se debe hacer?", opciones:["Verificar el código y la medida exacta en el catálogo antes de instalarla","Comparar la pieza dañada con la nueva a simple vista y usarla si el tamaño coincide","Instalar la que recomiende el proveedor sin verificar el código en el catálogo"], correcta:0},
+  {tema:"Ajuste de medidas", texto:"La bolsa está saliendo unos milímetros fuera de la medida especificada. ¿Cuál es la acción correcta?", opciones:["Ajustar conforme al procedimiento y confirmar con instrumento de medición antes de reanudar producción","Ajustar a simple vista y continuar la producción, confirmando con instrumento hasta el cambio de turno","Detener la máquina, avisar a mantenimiento y esperar su ajuste sin intervenir directamente"], correcta:0},
+  {tema:"Ajuste de tiempos", texto:"¿Qué consecuencia tiene principalmente un mal ajuste de tiempos entre mecanismos?", opciones:["Puede provocar corte o formado fuera de sincronía y bolsas defectuosas","Solo se nota en máquinas viejas; en máquinas nuevas el tiempo se autorregula","Afecta únicamente la velocidad de producción, no la calidad de la bolsa"], correcta:0},
+  {tema:"Ajuste de avance de tubo", texto:"El avance de tubo controla principalmente:", opciones:["La longitud de la bolsa y la posición del traslape","La presión del sellado lateral y el ancho del fuelle","La velocidad general de la máquina y el consumo de papel"], correcta:0},
+  {tema:"Cambio de cuchillas", texto:"¿Cuál es el orden correcto para cambiar cuchillas?", opciones:["Bloquear/detener la máquina, usar equipo de protección, retirar la cuchilla desgastada e instalar la nueva verificando filo y ajuste","Detener la máquina, usar equipo de protección y cambiar la cuchilla, dejando el ajuste de filo para cuando arranque la producción","Bloquear la máquina y cambiar la cuchilla sin equipo de protección, ya que el paro elimina el riesgo"], correcta:0},
+  {tema:"Cambio de componentes mecánicos", texto:"Después de cambiar una mordaza, gomero o leva, ¿qué paso no debe omitirse?", opciones:["Verificar la calibración/ajuste del componente antes de arrancar producción","Verificar la calibración solo si el componente se ve visiblemente diferente al anterior","Arrancar la producción y ajustar la calibración conforme se detecten defectos"], correcta:0},
+  {tema:"Ajuste de sistema de adhesivo", texto:"Un ajuste correcto del sistema de adhesivo depende principalmente de:", opciones:["La cantidad, posición y temperatura del adhesivo según la especificación del producto","Principalmente la temperatura, ya que la cantidad y posición se ajustan solas con el flujo","La presión del sistema, llevándola al máximo para asegurar que cubra toda la superficie"], correcta:0},
+  {tema:"Detección de fallas", texto:"Ante una falla que se repite varias veces durante el turno, la acción más adecuada es:", opciones:["Identificar el síntoma, analizar la causa probable y reportar o corregir según el procedimiento","Corregir la falla de inmediato sin registrar el síntoma, ya que lo importante es no detener producción","Reportar la falla al siguiente turno para que la analice con más tiempo disponible"], correcta:0},
+  {tema:"Ajustes operativos", texto:"Los ajustes operativos del día a día deben basarse principalmente en:", opciones:["Los parámetros y especificaciones establecidas para el producto en curso","Los parámetros del producto anterior, ajustando solo lo necesario para ahorrar tiempo","La velocidad máxima que soporte la máquina, priorizando el volumen de producción"], correcta:0},
+  {tema:"Uso correcto de adhesivo", texto:"Aplicar adhesivo en exceso en la bolsa puede provocar principalmente:", opciones:["Manchas, bolsas pegadas entre sí o acabado defectuoso","Un sellado más resistente, aunque con mayor tiempo de secado","Un mayor consumo de adhesivo sin afectar la apariencia del producto"], correcta:0},
+  {tema:"Correcto prensado de bolsa", texto:"El prensado insuficiente de la bolsa puede resultar en:", opciones:["Fondos o costuras que no cierran completamente, afectando la calidad","Bolsas ligeramente más gruesas, sin afectar el sellado","Un acabado más brillante en la superficie de la bolsa"], correcta:0},
+  {tema:"Correcto empacado en caja o bulto", texto:"Al empacar en caja o bulto, además de respetar la cantidad exacta, es importante:", opciones:["Acomodar el producto de forma que no se dañe ni se deforme durante el manejo","Acomodar el producto priorizando la rapidez, siempre que la cantidad sea la correcta","Llenar la caja con la cantidad exacta, sin que el acomodo interno sea relevante"], correcta:0},
+  {tema:"Correcto flejado y entarimado", texto:"Un flejado deficiente en la tarima puede ocasionar principalmente:", opciones:["Que la carga se desplace o caiga durante el manejo y transporte","Que el tiempo de entarimado se reduzca considerablemente","Que la tarima pese menos y sea más fácil de mover"], correcta:0},
+  {tema:"Etiquetado de cajas y tarimas", texto:"Una etiqueta con datos incompletos o incorrectos en una caja o tarima puede ocasionar:", opciones:["Errores de despacho, de trazabilidad o entrega al cliente equivocado","Retrasos menores que se corrigen fácilmente en el área de embarque","Ningún problema grave, siempre que el producto interno sea el correcto"], correcta:0},
+  {tema:"Revisión de calidad del producto", texto:"Durante la revisión de calidad, ¿qué se debe priorizar?", opciones:["Verificar que el producto cumpla las especificaciones y esté libre de defectos visibles antes de continuar el proceso","Verificar la calidad solo en las primeras piezas de cada turno","Revisar la calidad únicamente cuando el cliente reporta una queja"], correcta:0},
+  {tema:"Realizar gomero", texto:"Un gomero mal aplicado, con posición o cantidad de pegamento incorrecta, puede ocasionar principalmente:", opciones:["Bolsas sin el fondo o lateral correctamente pegado","Bolsas con mayor resistencia al peso, sin ningún efecto negativo","Bolsas con mejor acabado visual en el área del gomero"], correcta:0},
+  {tema:"Adhesivo de la bolsa", texto:"El adhesivo de la bolsa ¿en dónde se aplica?", opciones:["Fondo y costura","Cara y fuelle","Impreso y repetición"], correcta:0},
+  {tema:"Partes de la máquina", texto:"¿Cuál es el orden correcto en que el papel recorre las partes principales de la máquina?", opciones:["Desbobinador → mesa del formador → máquina principal → salida de bolsa","Desbobinador → máquina principal → mesa del formador → salida de bolsa","Mesa del formador → desbobinador → máquina principal → salida de bolsa"], correcta:0},
+  {tema:"Limpieza de máquina", texto:"La limpieza en rodajas, presiones de rodillos y partes donde pasa la bolsa es fundamental principalmente para:", opciones:["El correcto funcionamiento de la máquina y evitar defectos por acumulación de residuos","Prolongar la vida de la máquina, sin relación directa con la calidad de la bolsa","Cumplir con la limpieza general del área, sin impacto en el proceso de producción"], correcta:0},
+  {tema:"Hoja de arranque", texto:"Cuando se inicia con una nueva bolsa, ¿qué es lo primero que debes hacer?", opciones:["Realizar hoja de arranque","Realizar hoja de seguimiento","Ambas (A y B)"], correcta:2},
+  {tema:"Formato de seguimiento", texto:"¿Cuál es la importancia de llenar en tiempo y forma el Formato de Seguimiento?", opciones:["Cumplir con los estándares de calidad (revisión constante)","Por temas de auditoría","Ambas (A y B)"], correcta:2},
+  {tema:"Prueba de desgarre", texto:"¿Cuál es el motivo por el cual se realiza la prueba de desgarre en una bolsa?", opciones:["Detectar fallas","No lo sé","Ajustes de operación"], correcta:0},
+  {tema:"Bolsas pegadas", texto:"¿Cómo evitas que las bolsas salgan pegadas por dentro o entre ellas?", opciones:["Revisar que el engomador esté bien hecho","Limpieza constante del aplicador de goma","Ambas (A y B)"], correcta:2},
+  {tema:"Adhesivos PVA", texto:"Tipos de adhesivos PVA que usamos en costuras o fondos:", opciones:["32136, 3200, 272, Univa 1, Univa 2","32130, 32100, 270, Univa 4, Univa 5","Univa 3, Univa 6, 271, 33000"], correcta:0},
+  {tema:"Fardos por paquete", texto:"Los paquetes de 100 bolsas ¿en cuántos fardos se separan?", opciones:["4","1","2"], correcta:0},
+  {tema:"Lubricación de máquina", texto:"¿Cada cuánto se debe lubricar la máquina?", opciones:["Cada 5 días","Cada 20 días","Diaria"], correcta:0},
+  {tema:"Bolsas por fardo", texto:"¿Cuántas bolsas tiene cada fardo?", opciones:["25","12","50"], correcta:0},
+  {tema:"Tarima", texto:"La tarima de medida 102 x 122 cm corresponde a producto:", opciones:["Exportación","Nacional","Ambos por igual"], correcta:0},
+  {tema:"Traslape — Vogue", texto:"Vogue 40.5 x 15.5 x 30.5, Desarrollo: 42. ¿De qué medida será el largo del traslape?", opciones:["11.5 cm","12 cm","10 mm"], correcta:0},
+  {tema:"Traslape — Minsa", texto:"Minsa 10.5 x 6.5 x 28, Desarrollo: 33. ¿De qué medida será el largo del traslape?", opciones:["5 cm","5 mm","4.5 cm"], correcta:0},
+  {tema:"Traslape — Carbón SMART", texto:"Carbón SMART 22 x 12 x 48, Desarrollo: 57. ¿De qué medida será el largo del traslape?", opciones:["9 cm","11 cm","8 cm"], correcta:0},
+  {tema:"Herramientas básicas", texto:"¿Cuáles son las herramientas básicas necesarias para realizar un cambio completo?", opciones:["Llave española de 19mm, martillo de plástico","Juego de llaves allen, llaves españolas 10mm, 13mm, 17mm, 24mm, 30mm, flexómetro, desarmador plano","Ambas (A y B)"], correcta:2}
+];
+
+const PASS_PCT = 80;
+const DIGITAL_MAX = 80;
+const ESCRITO_MAX = 20;
+const ADMIN_CODE = "DELTA2026";
+
+let state = {};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function buildRun(){
+  // Baraja preguntas y, dentro de cada una, baraja las opciones (guardando el texto correcto)
+  const preguntas = shuffle(BANCO).map(q=>{
+    const correctText = q.opciones[q.correcta];
+    const opciones = shuffle(q.opciones);
+    return {tema:q.tema, texto:q.texto, opciones, correctText};
+  });
+  return preguntas;
+}
+
+function startScreen(){
+  const card = document.getElementById('card');
+  document.getElementById('bandRight').textContent = 'Examen digital';
+  card.innerHTML = `
+    <h2 class="title">Examen General de Conocimientos</h2>
+    <p class="sub">Producción — Ayudante General, Aprendiz/Ayudante de Operador, Operador y Operador Especial. Cada intento presenta las preguntas y opciones en un orden distinto.</p>
+    <label>Nombre completo</label>
+    <input type="text" id="fNombre" placeholder="Nombre y apellido">
+    <label>Número de nómina</label>
+    <input type="text" id="fNomina" placeholder="Ej. 6358" inputmode="numeric">
+    <label>Puesto</label>
+    <select id="fPuesto">
+      <option value="">Selecciona tu puesto</option>
+      <option>Ayudante General</option>
+      <option>Aprendiz / Ayudante de Operador</option>
+      <option>Operador</option>
+      <option>Operador Especial</option>
+    </select>
+    <label>Área / Máquina</label>
+    <select id="fArea">
+      <option value="">Selecciona tu máquina</option>
+      <option>E-COMER</option>
+      <option>FONDO COMUN 1</option>
+      <option>FONDO COMUN 2</option>
+      <option>TRIUNFO 01</option>
+      <option>TRIUNFO 04</option>
+      <option>TRIUNFO 05</option>
+      <option>TRIUNFO 06</option>
+      <option>TRIUNFO 07</option>
+      <option>TRIUNFO 08</option>
+      <option>TRIUNFO 09</option>
+      <option>TRIUNFO 10</option>
+      <option>TRIUNFO 11</option>
+      <option>TRIUNFO 12</option>
+      <option>CARBONERA 2</option>
+      <option>CARBONERA 3</option>
+      <option>CARBONERA 4</option>
+      <option>CARBONERA 5</option>
+      <option>CARBONERA 6</option>
+      <option>SHOPPING BAG 1</option>
+      <option>SHOPPING BAG 2</option>
+      <option>SHOPPING BAG 3</option>
+      <option>SHOPPING BAG 4</option>
+      <option>SHOPPING BAG 5</option>
+      <option>SHOPPING BAG 6</option>
+      <option>SHOPPING BAG 7</option>
+      <option>SHOPPING BAG 8</option>
+      <option>SHOPPING BAG 9</option>
+      <option>RUIZHI 1- Troquel</option>
+      <option>RUIZHI 2- Troquel</option>
+    </select>
+    <button class="btn-primary" id="btnStart">Comenzar examen</button>
+  `;
+  document.getElementById('btnStart').onclick = ()=>{
+    const nombre = document.getElementById('fNombre').value.trim();
+    const nomina = document.getElementById('fNomina').value.trim();
+    const puesto = document.getElementById('fPuesto').value;
+    const area = document.getElementById('fArea').value;
+    if(!nombre || !nomina || !puesto){
+      alert('Por favor captura tu nombre, tu número de nómina y selecciona tu puesto.');
+      return;
+    }
+    state = {
+      nombre, nomina, puesto, area,
+      preguntas: buildRun(),
+      idx: 0,
+      respuestas: [],
+      seleccion: null
+    };
+    renderPregunta();
+  };
+}
+
+function renderPregunta(){
+  const card = document.getElementById('card');
+  const total = state.preguntas.length;
+  const q = state.preguntas[state.idx];
+  document.getElementById('bandRight').textContent = `Pregunta ${state.idx+1} de ${total}`;
+  const pct = Math.round((state.idx)/total*100);
+  card.innerHTML = `
+    <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    <div class="qmeta">${q.tema}</div>
+    <p class="qtext">${q.texto}</p>
+    <div id="opts"></div>
+    <div class="foot-row">
+      <span>${state.nombre} (${state.nomina}) · ${state.puesto}</span>
+      <button class="btn-next" id="btnNext" disabled>${state.idx===total-1 ? 'Finalizar' : 'Siguiente'}</button>
+    </div>
+  `;
+  const optsDiv = document.getElementById('opts');
+  q.opciones.forEach((op)=>{
+    const b = document.createElement('button');
+    b.className = 'opcion';
+    b.textContent = op;
+    b.onclick = ()=>{
+      document.querySelectorAll('.opcion').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected');
+      state.seleccion = op;
+      document.getElementById('btnNext').disabled = false;
+    };
+    optsDiv.appendChild(b);
+  });
+  document.getElementById('btnNext').onclick = ()=>{
+    state.respuestas.push({
+      tema:q.tema, texto:q.texto,
+      dada: state.seleccion,
+      correcta: q.correctText,
+      ok: state.seleccion === q.correctText
+    });
+    state.seleccion = null;
+    state.idx++;
+    if(state.idx >= total){
+      finalizar();
+    } else {
+      renderPregunta();
+    }
+  };
+}
+
+async function finalizar(){
+  const total = state.respuestas.length;
+  const correctas = state.respuestas.filter(r=>r.ok).length;
+  const pct = Math.round(correctas/total*100);
+  const puntosDigital = Math.round((correctas/total)*DIGITAL_MAX*10)/10;
+  const pass = pct >= PASS_PCT;
+
+  const registro = {
+    nombre: state.nombre, nomina: state.nomina, puesto: state.puesto, area: state.area,
+    correctas, total, pct, puntosDigital, pass,
+    fecha: new Date().toISOString()
+  };
+  try{
+    const key = 'resultado:' + Date.now() + '-' + Math.floor(Math.random()*100000);
+    localStorage.setItem(key, JSON.stringify(registro));
+  }catch(e){ console.error('No se pudo guardar el resultado', e); }
+
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzp7wzFlUT3hs3CIM8KmZ3r4Z4qoWfFZy-VcvuWkx_kxQ0QjSHdltHZzeuBDf50-vDZ9A/exec';
+  try{
+    fetch(SHEET_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(registro) });
+  }catch(e){ console.error('No se pudo enviar a la base de datos', e); }
+
+  const falladas = state.respuestas.filter(r=>!r.ok);
+  let detalleFallas = '';
+  if(falladas.length > 0){
+    detalleFallas = '\n\nPreguntas incorrectas:' + falladas.map(r=>
+      `\n- ${r.tema}: respondió "${r.dada}" | correcta: "${r.correcta}"`
+    ).join('');
+  } else {
+    detalleFallas = '\n\n¡Sin errores!';
+  }
+
+  const mailSubject = encodeURIComponent(`Resultado examen — ${state.nombre} (Nómina ${state.nomina})`);
+  const mailBody = encodeURIComponent(
+    `Resultado examen Bolsas Delta\nNombre: ${state.nombre}\nNúmero de nómina: ${state.nomina}\nPuesto: ${state.puesto}${state.area ? ('\nÁrea: '+state.area) : ''}\nParte digital: ${correctas}/${total} correctas — ${puntosDigital}/${DIGITAL_MAX} puntos (${pct}%) — ${pass ? 'Aprobado' : 'No aprobado'}\nFalta sumar los ${ESCRITO_MAX} puntos de los ejercicios escritos (35 y 36) para la calificación final sobre 100.${detalleFallas}`
+  );
+
+  const card = document.getElementById('card');
+  document.getElementById('bandRight').textContent = 'Resultado';
+  card.innerHTML = `
+    <div class="score-hero">
+      <div class="score-num">${puntosDigital}<span class="score-den">/${DIGITAL_MAX}</span></div>
+      <div class="badge ${pass?'pass':'fail'}">${correctas}/${total} correctas (${pct}%) — ${pass?'Aprobado':'No aprobado'}</div>
+    </div>
+    <p class="sub" style="text-align:center;margin-top:14px;">${state.nombre} (Nómina ${state.nomina}) · ${state.puesto}${state.area?(' · '+state.area):''}</p>
+    <p class="sub" style="text-align:center;margin-top:-8px;">Puntaje de la parte digital, sobre ${DIGITAL_MAX}. Faltan ${ESCRITO_MAX} puntos de los ejercicios escritos para la calificación final sobre 100.</p>
+    <a href="mailto:j.cruz@bolsasdelta.com?subject=${mailSubject}&body=${mailBody}" class="btn-primary" style="display:block;text-align:center;text-decoration:none;background:#2f7a4f;">Enviar resultado por correo al supervisor</a>
+    <div class="note">Este examen digital cubre todas las preguntas de opción múltiple (vale ${DIGITAL_MAX} de 100 puntos); los ejercicios 35 y 36 del diagrama de la bolsa se responden en la versión impresa y valen ${ESCRITO_MAX/2} puntos cada uno. Tu resultado ya quedó guardado automáticamente; el botón de correo es opcional, por si además quieres avisarle directo al supervisor.</div>
+    <button class="btn-primary" style="margin-top:18px;" onclick="startScreen()">Nuevo intento</button>
+  `;
+}
+
+function showAdmin(){
+  const code = prompt('Código de supervisor:');
+  if(code !== ADMIN_CODE){
+    if(code !== null) alert('Código incorrecto.');
+    return;
+  }
+  renderAdmin();
+}
+
+async function renderAdmin(){
+  const card = document.getElementById('card');
+  document.getElementById('bandRight').textContent = 'Panel del supervisor';
+  let rows = [];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('resultado:')){
+        try{ rows.push(JSON.parse(localStorage.getItem(k))); }catch(e){}
+      }
+    }
+  }catch(e){ console.error(e); }
+  rows.sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
+  let tableRows = rows.map(r=>`
+    <tr>
+      <td>${new Date(r.fecha).toLocaleString('es-MX')}</td>
+      <td>${r.nombre}</td>
+      <td>${r.nomina || '—'}</td>
+      <td>${r.puesto}</td>
+      <td>${r.correctas}/${r.total}</td>
+      <td>${r.puntosDigital!==undefined ? r.puntosDigital+'/80' : '—'}</td>
+      <td style="color:${r.pass?'#2f7a4f':'#b0392c'};font-weight:700;">${r.pct}%</td>
+    </tr>`).join('');
+  if(rows.length === 0){ tableRows = `<tr><td colspan="7" style="color:#9aa79f;">Sin resultados en este dispositivo/navegador.</td></tr>`; }
+  card.innerHTML = `
+    <h2 class="title">Resultados registrados</h2>
+    <p class="sub">⚠ Esta tabla solo muestra los intentos hechos <strong>desde este mismo celular/navegador</strong> — no es un registro centralizado de todo el personal. Revisa tu hoja de Google Sheets para el registro completo, o pide a cada persona que use el botón de correo al terminar.</p>
+    <table class="res">
+      <thead><tr><th>Fecha</th><th>Nombre</th><th>Nómina</th><th>Puesto</th><th>Correctas</th><th>Puntos (de 80)</th><th>%</th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <button class="btn-primary" style="margin-top:18px;" onclick="startScreen()">Volver al examen</button>
+  `;
+}
+
+startScreen();
+</script>
+</body>
+</html>
