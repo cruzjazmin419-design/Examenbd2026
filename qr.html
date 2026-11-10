@@ -2545,10 +2545,14 @@ function calcularResultado(filas, area, np) {
   else if (f.every(x => req(x.id) > 2 || x.nivel >= 2)) base = 'OPERADOR';
   else if (f.every(x => req(x.id) > 1 || x.nivel >= 1)) base = 'APRENDIZ';
   else base = 'SIN DOMINIO';
+  const EXIG = { 1: 'A', 2: 'O', 3: 'OE' };
+  const objetivo = { 'OPERADOR': ['OPERADOR ESPECIAL', 3, x => x.nivel < 3], 'APRENDIZ': ['OPERADOR', 2, x => req(x.id) <= 2 && x.nivel < 2], 'SIN DOMINIO': ['APRENDIZ', 1, x => req(x.id) <= 1 && x.nivel < 1] }[base];
+  const limitantes = objetivo ? f.filter(objetivo[2]).map(x => ({ id: x.id, nombre: x.nombre || '', nivel: x.nivel, exigido: EXIG[req(x.id)] || 'OE', minimo: objetivo[1] })) : [];
   const parcial = n > 0 && n < aplican;
   const suma = f.reduce((a, x) => a + x.nivel, 0);
   return { nivel: base, parcial, nivel_final: base + (parcial ? ' (parcial)' : ''), evaluadas: n, aplican,
     azul: cnt[3], verde: cnt[2], amarillo: cnt[1], rojo: cnt[0],
+    siguiente: objetivo ? objetivo[0] : null, limitantes,
     pct_dominio: n ? suma / (3 * n) : null, indice: n ? suma / n + 1 : null,
     brechas: np && n ? f.filter(x => req(x.id) <= np && x.nivel < np).length : null };
 }
@@ -2588,7 +2592,8 @@ function correoManual(p) {
   const r = p.resultado;
   const cuerpo = [`Examen: ${p.examen}`, `Empleado: ${p.codigo} · ${p.nombre}`, `Puesto: ${p.puesto || ''}`, `Máquina: ${p.area}`, '', `RESULTADO FINAL: ${r.nivel_final}`,
     `Respuestas: ${r.correctas} correctas · ${r.incorrectas} incorrectas · ${r.sin_responder} sin responder (de ${r.total})`,
-    `Habilidades: ${r.azul} azul · ${r.verde} verde · ${r.amarillo} amarillo · ${r.rojo} rojo`, '',
+    `Habilidades: ${r.azul} azul · ${r.verde} verde · ${r.amarillo} amarillo · ${r.rojo} rojo`,
+    ...(r.limitantes && r.limitantes.length ? ['', `Para llegar a ${r.siguiente}: ` + r.limitantes.map(x => `${x.id} ${x.nivel}/3 (${x.exigido})`).join('; ')] : []), '',
     ...p.habilidades.map(x => `${x.id}: ${x.aciertos}/${x.total} ${COLORES[x.color][1]}`)].join('\n');
   location.href = `mailto:${CONFIG.CORREO_DESTINO}?subject=${encodeURIComponent(`Examen ${p.examen}: ${p.nombre} (${p.codigo}) — ${r.nivel_final}`)}&body=${encodeURIComponent(cuerpo)}`;
 }
@@ -2610,6 +2615,11 @@ function mostrarResultado(res, payload, envio) {
         h('div', {}, h('span', { class: 'chip ' + claseNivel, style: 'font-size:1.05rem;padding:6px 16px' }, rf.nivel),
           rf.parcial ? h('span', { class: 'sub', style: 'margin-left:10px' }, `parcial: se evaluaron ${rf.evaluadas} de las ${rf.aplican} habilidades de tu área`) : null),
         h('p', { class: 'sub', style: 'margin-top:8px' }, `Respuestas: ${rf.correctas} correctas · ${rf.incorrectas} incorrectas` + (rf.sin_responder ? ` · ${rf.sin_responder} sin responder` : '') + ` (de ${rf.total})`)),
+      rf.limitantes && rf.limitantes.length ? h('div', { class: 'warn', style: 'margin:10px 0' }, h('b', {}, `Para llegar a ${rf.siguiente} necesitas mejorar:`),
+        h('ul', { style: 'margin:6px 0 0 18px;padding:0' }, rf.limitantes.slice(0, 10).map(x => h('li', {}, `${x.id} · ${x.nombre} — sacaste ${x.nivel}/3 (exigida como ${x.exigido}; mínimo ${x.minimo}/3)`))),
+        rf.limitantes.length > 10 ? h('div', {}, `…y ${rf.limitantes.length - 10} más.`) : null) : null,
+      h('details', { style: 'margin:6px 0 12px' }, h('summary', { style: 'cursor:pointer;color:#5b6577' }, '¿Cómo se calcula mi resultado final?'),
+        h('p', { class: 'sub', style: 'margin-top:8px' }, 'No es un promedio ni un porcentaje de aciertos: depende de tus habilidades más débiles. Operador Especial: todas en 3/3. Operador: todas las habilidades exigidas como A u O con al menos 2/3. Aprendiz: todas las exigidas como A con al menos 1/3. Si no se cumple, Sin dominio. Con un solo 1/3 en una habilidad exigida para Operador, el resultado baja a Aprendiz aunque el resto esté perfecto.')),
       h('div', { class: 'sum' }, ['rojo', 'amarillo', 'verde', 'azul'].map(c => h('div', { class: 'chip ' + c, style: 'border-radius:10px' }, String(res.cuenta[c]), h('small', {}, COLORES[c][1])))),
       h('table', {}, h('tr', {}, h('th', {}, 'ID'), h('th', {}, 'Habilidad'), h('th', {}, 'Aciertos'), h('th', {}, 'Nivel')),
         [...res.filas.map(f => h('tr', {}, h('td', {}, f.id), h('td', {}, f.nombre), h('td', {}, `${f.aciertos}/${f.total}`), h('td', {}, h('span', { class: 'chip ' + f.color }, COLORES[f.color][1])))),
