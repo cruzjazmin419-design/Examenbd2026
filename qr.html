@@ -2561,6 +2561,9 @@ function calcularResultado(filas, area, np) {
 async function terminar() {
   const sin = totalPreg() - contestadas();
   if (sin > 0 && !confirm(`Te faltan ${sin} pregunta(s) por responder. Las no respondidas cuentan como incorrectas.\n\n¿Enviar de todas formas?`)) return;
+  if (estado.enviando) return;                 // evita enviar dos veces si se toca el botón más de una vez
+  estado.enviando = true;
+  document.querySelectorAll('.row button').forEach(b => { b.disabled = true; if (/Finalizar/.test(b.textContent)) b.textContent = 'Enviando…'; });
   const res = calcular(), d = estado.datos;
   const rf = calcularResultado(res.filas, d.area, d.nivelPuesto);
   const corr = res.detalle.filter(x => x.ok).length, sinR = res.detalle.filter(x => x.resp < 0).length, totP = res.detalle.length;
